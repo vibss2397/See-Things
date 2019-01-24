@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import { RNCamera, FaceDetector } from 'react-native-camera';
 import {StyleSheet, Text, View, TouchableOpacity} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-
+import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
 class cameraScreen extends Component{
     constructor(props) {
         super(props);
@@ -13,12 +13,25 @@ class cameraScreen extends Component{
           flash : RNCamera.Constants.FlashMode.off,
           autoFocus : RNCamera.Constants.AutoFocus.on,
           flashActive : false,
+          myText: 'I\'m ready to get swiped!',
+          gestureName: 'none',
         }
       }
-
+      onSwipeLeft(gestureState) {
+        this.setState({myText: 'You swiped left!'});
+        this.props.navigation.navigate('Old');
+      }
+      onSwipeRight(gestureState) {
+        this.setState({myText: 'You swiped left!'});
+        this.props.navigation.navigate('Home');
+      }
     render(){
-        return(<View style={styles.container}>
-            
+        const config = {
+            velocityThreshold: 0.3,
+            directionalOffsetThreshold: 50,
+          };
+
+        return(
             <RNCamera
             ref={ref => {
               this.camera = ref;
@@ -33,53 +46,46 @@ class cameraScreen extends Component{
             onGoogleVisionBarcodesDetected={({ barcodes }) => {
               console.log(barcodes)
             }} >
+
+        <GestureRecognizer
+                    onSwipeLeft={(state) => this.onSwipeLeft(state)}
+                    onSwipeRight={(state) => this.onSwipeRight(state)}
+                    config={config}
+                style={{
+                        flex: 1,
+                        backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                        
+                    }}
+                    >
+            <View style={{flex:4}}></View>
             <View style={styles.blehh}>
-                <View style={{flex: 1, flexDirection: 'row'}}>
+                <View style={{flex: 1, flexDirection: 'row', justifyContent: 'center'}}>
                         <TouchableOpacity
                                 onPress = {this.changeCameraType.bind(this)}
                                 style = {[this.state.cameraType=='back'?styles.backButton:styles.backButtonNew,{marginLeft:'1%'}]}
                             >
-                            <Icon name={"camera"}  style={{marginTop:'25%',marginLeft:'20%'}}size={16} color={this.state.cameraType=='back'?"#ffff":'#000'} />
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                onPress = {this.changeFlashType.bind(this)}
-                                style = {[this.state.flashActive?styles.flashOnButton:styles.backButton,{marginLeft:'23%'}]}
-                            >
-                            <Icon name={"bolt"}  style={{marginTop:'12%',marginLeft:'30%', color: this.state.flashActive?'#000':'#fff'}}size={22}  />
+                            <Icon name={"camera"}  size={22} style={{color: this.state.cameraType=='back'?"#ffff":'#000',  marginLeft: 8, marginTop: 8}} />
                             </TouchableOpacity>
                 </View>
-                <View style={{flex: 1}}>
+                <View style={{flex: 1, flexDirection: 'row', justifyContent: 'center'}}>
                     <TouchableOpacity
                         onPress = {this.takePicture.bind(this)}
                         style = {styles.capture}
                     >
                     </TouchableOpacity>
                 </View>
-                <View style={{flex: 1, flexDirection:'row'}}>
-                    <TouchableOpacity
-                            onPress = {()=>{
-                                this.props.navigation.navigate('Home')
-                            }}
-                            style = {[styles.backButton,{marginLeft:'-14%'}]}
-                        >
-                        <Icon name={"times"}  style={{marginTop:'15%',marginLeft:'23%',color:'#fff'}}size={20} />
-                        
-                        </TouchableOpacity>
-
-                                            <TouchableOpacity
-                            onPress = {()=>{
-                                this.props.navigation.navigate('Old');
-                            }}
-                            style = {[styles.backButton,{marginLeft:'20%'}]}
-                        >
-                        <Icon name={"chevron-right"}  style={{marginTop:'18%',marginLeft:'32%'}}size={18} color="#ffff" />
-                        </TouchableOpacity>
-
-                        
+                <View style={{flex: 1, flexDirection: 'row', justifyContent: 'center'}}>
+                            <TouchableOpacity
+                                onPress = {this.changeFlashType.bind(this)}
+                                style = {[this.state.flashActive?styles.flashOnButton:styles.backButton,{marginLeft:'23%'}]}
+                            >
+                            <Icon name={"bolt"}  style={{ color: this.state.flashActive?'#000':'#fff', marginLeft: 13, marginTop: 7}}size={29}  />
+                            </TouchableOpacity>
                 </View>
             </View>
+            </GestureRecognizer>
             </RNCamera>
-                </View>);
+                );
         }
         changeCameraType() {
             if (this.state.cameraType === 'back') {
@@ -97,22 +103,22 @@ class cameraScreen extends Component{
         static navigationOptions = {
             header: null
         }
-        changeFlashType=function(){
-            if(this.state.flashMode === RNCamera.Constants.FlashMode.off){
+        changeFlashType(){
+            if(this.state.flash === RNCamera.Constants.FlashMode.off){
                 this.setState({
-                    flashMode : RNCamera.Constants.FlashMode.on,
+                    flash : RNCamera.Constants.FlashMode.on,
                     flashActive : true,
                 })
             } else{
                 this.setState({
-                    flashMode : RNCamera.Constants.FlashMode.off,
+                    flash : RNCamera.Constants.FlashMode.off,
                     flashActive : false,
                 })
             }
         }
         takePicture = async function() {
             if (this.camera) {
-              const options = { quality: 0.5, base64: true, fixOrientation: true };
+              const options = { quality: 0.7, base64: true, fixOrientation: true };
               const data = await this.camera.takePictureAsync(options);
               this.props.navigation.navigate('Result',{
                   imageData: data
@@ -124,23 +130,22 @@ class cameraScreen extends Component{
     const styles = StyleSheet.create({
         container: {
           flex: 1,
-          flexDirection: 'row',
           backgroundColor: 'black',
         },
         preview: {
           flex: 1,
-          justifyContent: 'flex-end',
-          alignItems: 'center',
+          justifyContent: 'center',
+          alignItems: 'stretch',
         },
         capture: {
           flex: 0,
           backgroundColor: '#fff',
-          width:60,
-          height:60,
+          width:70,
+          height:70,
           borderRadius:100,
           borderWidth: 10,
           borderColor: 'rgba(255,255,255,0.4)',
-          margin: 20,
+          
         },
         backButton: {
             zIndex:10,
@@ -148,8 +153,8 @@ class cameraScreen extends Component{
             backgroundColor :'transparent',
             borderWidth: 5,
             borderColor:'#fff',
-            width:40,
-          height:40,
+            width:50,
+          height:50,
           borderRadius:100,
         },
         backButtonNew: {
@@ -158,8 +163,8 @@ class cameraScreen extends Component{
             backgroundColor :'#fff',
             borderWidth: 5,
             borderColor:'#fff',
-            width:40,
-          height:40,
+            width:50,
+          height:50,
           borderRadius:100,
         },
         flashOnButton: {
@@ -168,15 +173,15 @@ class cameraScreen extends Component{
             backgroundColor :'#fff',
             borderWidth: 5,
             borderColor:'#fff',
-            width:40,
-          height:40,
+            width:50,
+          height:50,
           borderRadius:100,
         },
         blehh: {
+            flex: 1,
             flexDirection: 'row',
+            justifyContent: 'center',
             alignItems: 'center',
-            marginLeft:'8%',
-            justifyContent: 'center'
         }
       })
 

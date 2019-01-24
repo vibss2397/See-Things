@@ -2,6 +2,8 @@ import React, {Component} from 'react';
 import {StyleSheet, Text, View, ImageBackground,Image, TouchableOpacity, Dimensions, FlatList} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Modal from 'react-native-modalbox';
+import {NativeModules} from 'react-native'
+import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
 
 var screen = Dimensions.get('window');
 
@@ -23,6 +25,9 @@ class resultScreen extends Component{
       sliderValue: 0.3,
     }
   }
+  onSwipeUp(gestureState) {
+    this.refs.modal6.open()
+  }
 
   onClose() {
     console.log('Modal just closed');
@@ -36,118 +41,132 @@ class resultScreen extends Component{
     console.log('the open/close of the swipeToClose just changed');
   }
 
+
   componentDidMount(){
+    console.log(this.state.image)
     this.setState({loader:true})
-    const data = {image:this.state.image}
-    return fetch('https://imagerecog2397.herokuapp.com/',
-    {
-      method: "POST",
-      headers: {
-       "Accept": "application/json",
-       "Content-Type": "application/json",
+    const data = this.state.image.base64
+    var labell = null
+    NativeModules.ClassifierModule.ClassifyImage(
+       data,
+      (msg, label)=>{
+        console.log(msg);
+        console.log(label);
+         arr = label.split(',');
+         this.setState({
+          isLoading : false,
+          ans : arr[0],
+          text : arr[1],
+          text2 : arr[2],
+          text3 : arr[3],
+          text4 : arr[4],
+          text5 : arr[5],
+          loader : false,
+        })
       },
-      body : JSON.stringify(data)
-    })
-      .then((response) => {
-          let ans_json = JSON.parse(response._bodyText)
-          console.log(ans_json['predictions'])
-          this.setState({
-            isLoading : false,
-            ans : ans_json,
-            text : ans_json['predictions'][0].label,
-            text2 : ans_json['predictions'][1].label,
-            text3 : ans_json['predictions'][2].label,
-            text4 : ans_json['predictions'][3].label,
-            text5 : ans_json['predictions'][4].label,
-            loader : false,
-          })
-          console.log(this.state.ans)
-      })
-      .catch((error) =>{
-        console.error(error);
-      });
+      (msg)=>{
+        console.log(msg)
+      }
+    );
   }
 
   render(){
-        return(<View style={styles.container}>
-                    <ImageBackground
-                        source={{
-                            isStatic: true,
-                            uri: this.state.image.uri,
-                        }}
-                        style={styles.backgroundImage}
-                      >
+    const config = {
+      velocityThreshold: 0.3,
+      directionalOffsetThreshold: 50,
+    };
 
-                        <View style={{flex:1, backgroundColor:this.state.isLoading?'rgba(255,255,255,0.2)':'#fff0'}}>
-                          <ImageBackground
-                              source={this.state.isLoading?null:{uri:'googlepixel2'}}
-                              style={styles.backgroundImage}
-                            >
+    return(
+      <GestureRecognizer
+      onSwipeUp={(state) => this.onSwipeUp(state)}
+      config={config}
+  style={{
+          flex: 1,
+          backgroundColor: 'rgba(255, 255, 255, 0.15)',
+          
+      }}
+      >
+    <View style={styles.container}>
+                <ImageBackground
+                    source={{
+                        isStatic: true,
+                        uri: this.state.image.uri,
+                    }}
+                    style={styles.backgroundImage}
+                  >
 
-                            <Modal style={[styles.modal, styles.modal4]} position={"bottom"} ref={"modal6"} swipeArea={20}>
-                                <View style={{width: screen.width, paddingLeft: 10}}>
-                                    <FlatList
-                                      data={[
-                                        {key: this.Capitalize(this.state.text2)},
-                                        {key: this.Capitalize(this.state.text3)},
-                                        {key: this.Capitalize(this.state.text4)},
-                                        {key: this.Capitalize(this.state.text5)},
-                                      ]}
-                                      renderItem={({item}) => <Text style={styles.item}>{item.key}</Text>}
-                                    />
-                                </View>
-                            </Modal>
+                    <View style={{flex:1, backgroundColor:this.state.isLoading?'rgba(255,255,255,0.2)':'#fff0'}}>
+                      <ImageBackground
+                          source={this.state.isLoading?null:{uri:'googlepixel2'}}
+                          style={styles.backgroundImage}
+                        >
 
-                            <View style={{flex:1, alignItems:'center',justifyContent:'flex-start'}}>
-                              <Text style={[styles.results, {zIndex:4}]}>
-                                    {this.Capitalize(this.state.text)}{'\n'}{'\n'}
-                              </Text>
-
+                        <Modal style={[styles.modal, styles.modal4]} position={"bottom"} ref={"modal6"} swipeArea={20}>
+                            <View style={{width: screen.width, paddingLeft: 10}}>
+                                <FlatList
+                                  data={[
+                                    {key: this.Capitalize(this.state.text2.split(':')[0])},
+                                    {key: this.Capitalize(this.state.text3.split(':')[0])},
+                                    {key: this.Capitalize(this.state.text4.split(':')[0])},
+                                    {key: this.Capitalize(this.state.text5.split(':')[0])},
+                                  ]}
+                                  renderItem={({item}) => <Text style={styles.item}>{item.key}</Text>}
+                                />
                             </View>
-                            <View style={{flex:1, alignItems:'center',justifyContent:'flex-start', width:'100%'}}>
-                              {this.state.loader?<Image
-                                                      style={{width:50, height:50}}
-                                                      source={require('../img/loader.gif')}></Image>:<View style={{flex:1, justifyContent:'flex-end', alignItems:'center'}}>
-                                <TouchableOpacity
-                                  style={{
-                                      zIndex:0,
-                                      backgroundColor:'none',
-                                      width:60,
-                                      height:60,
-                                      marginBottom:'-7%',
-                                      marginRight:'-11%',
-                                      borderRadius:100,
-                                    }}
-                                    onPress={() => {
-                                      this.props.navigation.navigate('Camera');
-                                    }
+                        </Modal>
 
-                                    }
-                                    >
-                                  <Icon name={"chevron-circle-up"} onPress={() => this.refs.modal6.open()} style={{marginBottom:'1%'}}size={25} color="#ffff" />
-                                </TouchableOpacity>
-                                <Text
-                                  numberOfLines={1}
-                                  style={{
-                                    color:'#fff',
-                                    justifyContent:'flex-end',
-                                    marginBottom:'2%',
-                                  }}
+                        <View style={{flex:1, alignItems:'center',justifyContent:'flex-start'}}>
+                          <Text style={[styles.results, {zIndex:4}]}>
+                                {this.Capitalize(this.state.text.split(':')[0])}{'\n'}{'\n'}
+                          </Text>
+
+                        </View>
+                        <View style={{flex:1, alignItems:'center',justifyContent:'flex-start', width:'100%'}}>
+                          {this.state.loader?<Image
+                                                  style={{width:50, height:50}}
+                                                  source={require('../img/loader.gif')}></Image>:<View style={{flex:1, justifyContent:'flex-end', alignItems:'center'}}>
+                            <TouchableOpacity
+                              style={{
+                                  zIndex:0,
+                                  backgroundColor:'none',
+                                  width:60,
+                                  height:60,
+                                  marginBottom:'-7%',
+                                  marginRight:'-11%',
+                                  borderRadius:100,
+                                }}
+                                onPress={() => {
+                                  this.props.navigation.navigate('Camera');
+                                }
+
+                                }
                                 >
-                                swipe up to see other predictions
-                                </Text>
+                              <Icon name={"chevron-circle-up"} onPress={() => this.refs.modal6.open()} style={{marginBottom:'1%'}}size={25} color="#ffff" />
+                            </TouchableOpacity>
+                            <Text
+                              numberOfLines={1}
+                              style={{
+                                color:'#fff',
+                                justifyContent:'flex-end',
+                                marginBottom:'2%',
+                              }}
+                            >
+                            swipe up to see other predictions
+                            </Text>
 
-                                </View> }
-                            </View>
-                          </ImageBackground>
+                            </View> }
                         </View>
                       </ImageBackground>
-                </View>);
-      }
+                    </View>
+                  </ImageBackground>
+            </View>
+          </GestureRecognizer>);
+  }
 
   Capitalize(str){
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
+
   static navigationOptions = {
     header: null
 }
