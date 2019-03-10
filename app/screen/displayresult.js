@@ -1,9 +1,11 @@
 import React, {Component} from 'react';
-import {StyleSheet, Text, View, ImageBackground,Image, TouchableOpacity, Dimensions, FlatList} from 'react-native';
+import {StyleSheet, Text, View, ImageBackground,Image, TouchableOpacity, Dimensions, FlatList, Button, CameraRoll, PermissionsAndroid} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Modal from 'react-native-modalbox';
-import {NativeModules} from 'react-native'
-import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
+import {NativeModules} from 'react-native';
+import GestureRecognizer from 'react-native-swipe-gestures';
+import { captureRef } from "react-native-view-shot";
+import Emoji from 'react-native-emoji';
 
 var screen = Dimensions.get('window');
 
@@ -23,6 +25,7 @@ class resultScreen extends Component{
       loader : false,
       swipeToClose: true,
       sliderValue: 0.3,
+      take_ss: false
     }
   }
   onSwipeUp(gestureState) {
@@ -43,15 +46,12 @@ class resultScreen extends Component{
 
 
   componentDidMount(){
-    console.log(this.state.image)
     this.setState({loader:true})
-    const data = this.state.image.base64
+    const data = this.state.image.uri
     var labell = null
     NativeModules.ClassifierModule.ClassifyImage(
        data,
       (msg, label)=>{
-        console.log(msg);
-        console.log(label);
          arr = label.split(',');
          this.setState({
           isLoading : false,
@@ -62,14 +62,40 @@ class resultScreen extends Component{
           text4 : arr[4],
           text5 : arr[5],
           loader : false,
+          take_ss: true
         })
       },
       (msg)=>{
         console.log(msg)
       }
     );
+      
   }
-
+  async requestPhotosPermission() {
+    try {
+      const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE)
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          console.log('yaaha')
+          return 'done';
+        } else {
+          console.log("Photos permission denied")
+          return 'not';
+        }
+    } catch (err) {
+      console.warn(err)
+    }
+  }
+  take_screen =()=>{
+  
+    captureRef(this.refs.sc, {
+      format: "jpg",
+      quality: 0.8,
+    })
+    .then(
+      uri => {this.requestPhotosPermission()=='done'?CameraRoll.saveToCameraRoll(uri):null},
+      error => console.error("Oops, snapshot failed", error)
+    );
+  }
   render(){
     const config = {
       velocityThreshold: 0.3,
@@ -86,7 +112,8 @@ class resultScreen extends Component{
           
       }}
       >
-    <View style={styles.container}>
+     
+    <View ref='sc' style={styles.container}>
                 <ImageBackground
                     source={{
                         isStatic: true,
@@ -95,7 +122,7 @@ class resultScreen extends Component{
                     style={styles.backgroundImage}
                   >
 
-                    <View style={{flex:1, backgroundColor:this.state.isLoading?'rgba(255,255,255,0.2)':'#fff0'}}>
+                    <View  style={{flex:1, backgroundColor:this.state.isLoading?'rgba(255,255,255,0.2)':'#fff0'}}>
                       <ImageBackground
                           source={this.state.isLoading?null:{uri:'googlepixel2'}}
                           style={styles.backgroundImage}
@@ -117,14 +144,15 @@ class resultScreen extends Component{
 
                         <View style={{flex:1, alignItems:'center',justifyContent:'flex-start'}}>
                           <Text style={[styles.results, {zIndex:4}]}>
-                                {this.Capitalize(this.state.text.split(':')[0])}{'\n'}{'\n'}
+                                {this.Capitalize(this.state.text.split(':')[0])}{'\n'}
                           </Text>
-
+                          <Text style={styles.results}><Emoji name='ghost' style={{fontSize: 50}}></Emoji></Text>
                         </View>
                         <View style={{flex:1, alignItems:'center',justifyContent:'flex-start', width:'100%'}}>
                           {this.state.loader?<Image
                                                   style={{width:50, height:50}}
                                                   source={require('../img/loader.gif')}></Image>:<View style={{flex:1, justifyContent:'flex-end', alignItems:'center'}}>
+                            <Button title="Take Screenshot" onPress={this.take_screen} />
                             <TouchableOpacity
                               style={{
                                   zIndex:0,
@@ -197,6 +225,14 @@ const styles = StyleSheet.create({
       width: null,
       height: null,
       resizeMode: 'contain'
+  },
+  border: {
+    borderRadius:100,
+    borderWidth: 3,
+    borderColor: 'rgba(255,255,255,1)'
+  },
+  button: {
+    alignItems: 'center',
   },
   results:{
   marginTop: '2%',

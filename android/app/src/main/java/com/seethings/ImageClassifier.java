@@ -34,7 +34,7 @@ public class ImageClassifier {
   private static final String TAG = "See Things";
 
   /** Name of the model file stored in Assets. */
-  private static final String MODEL_PATH = "model_quant.tflite";
+  private static final String MODEL_PATH = "model2_quant.tflite";
 
   /** Name of the label file stored in Assets. */
   private static final String LABEL_PATH = "labels.txt";
@@ -111,7 +111,7 @@ public class ImageClassifier {
     Log.d(TAG, "Timecost to run model inference: " + Long.toString(endTime - startTime));
     // Only works for float models, not on quantized models
     // smooth the results
-//    applyFilter();
+  //  applyFilter();
 
     // print the results
     String textToShow = printTopKLabels();
@@ -121,7 +121,7 @@ public class ImageClassifier {
 
 //  void applyFilter(){
 //    int num_labels =  labelList.size();
-//
+
 //    // Low pass filter `labelProbArray` into the first stage of the filter.
 //    for(int j=0; j<num_labels; ++j){
 //      filterLabelProbArray[0][j] += FILTER_FACTOR*(labelProbArray[0][j] -
@@ -133,15 +133,15 @@ public class ImageClassifier {
 //        filterLabelProbArray[i][j] += FILTER_FACTOR*(
 //                filterLabelProbArray[i-1][j] -
 //                filterLabelProbArray[i][j]);
-//
+
 //      }
 //    }
-//
+
 //    // Copy the last stage filter output back to `labelProbArray`.
 //    for(int j=0; j<num_labels; ++j){
 //      labelProbArray[0][j] = filterLabelProbArray[FILTER_STAGES-1][j];
 //    }
-//  }
+//   }
 
   /** Closes tflite to release resources. */
   public void close() {
@@ -194,7 +194,7 @@ public class ImageClassifier {
     long endTime = SystemClock.uptimeMillis();
     Log.d(TAG, "Timecost to put values into ByteBuffer: " + Long.toString(endTime - startTime));
   }
-  // for floating point models
+//   // for floating point models
 //  private void convertBitmapToByteBuffer(Bitmap bitmap) {
 //    if (imgData == null) {
 //      return;

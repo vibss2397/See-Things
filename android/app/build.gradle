@@ -158,6 +158,7 @@ repositories {
     }
 }
 dependencies {
+    compile project(':react-native-view-shot')
     compile project(':react-native-camera')
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"
