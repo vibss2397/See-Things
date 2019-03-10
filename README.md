@@ -12,9 +12,11 @@ To run this application :
 3. run ```npm install```   
 4. now run ```react-native run-android``` 
 
-More things to do : 
-1. Dedicated hosting solution  
-2. Java wrapper around tf-lite to directly run model offline
+More things to do :  
+<s>1. Dedicated hosting solution</s>  
+<s>2. Java wrapper around tf-lite to directly run model offline</s>  
 3. emojis for every category  
+4. real time detection for hotdog or pizza  
+
 
 
