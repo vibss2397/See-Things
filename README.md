@@ -12,11 +12,14 @@ To run this application :
 3. run ```npm install```   
 4. now run ```react-native run-android``` 
 
-More things to do :  
-<s>1. Dedicated hosting solution</s>  
-<s>2. Java wrapper around tf-lite to directly run model offline</s>  
-3. emojis for every category  
-4. real time detection for hotdog or pizza  
+Features Right now :  
+1. Dedicated hosting solution - available in archive/v1 
+2. Java wrapper around tf-lite to directly run model offline - available in archive/v2 
+3. emojis for every category - done in see food/build the latest model 
+4. real time detection for food - done in see food/build the latest model 
 
+More to do : 
+1. Train a better Model - trained mine in colab for 32 epochs/trained model available in assets 
+2. emojis for every imagenet category 
 
 
